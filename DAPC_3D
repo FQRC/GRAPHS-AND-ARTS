@@ -1,0 +1,50 @@
+library(adegenet)
+library(devtools)
+library(rgl)
+
+## Directorio de trabajo
+setwd("~/Documents/...")
+
+## Leer archivo genepop .gen y convertir a objeto genind
+congrio_genind_all <- read.genepop("170_maf0.01_genepop.gen", quiet=T, ncode=3)
+
+## Analisis sicriminante de componentes principales
+dapc_congrio_all_150 <- dapc(congrio_genind_all,n.pca = 150,n.da=7)
+
+## Extraer coordenadas individuales de DAPC
+dapc_all_df1<-dapc_congrio_all_150$ind.coord
+dapc_all_df1<-as.data.frame(dapc_all_df1)
+
+col_indv<-c(rep("#B2182B",26),rep("#D6604D",26),rep("#F4A582",18),rep("#ffd5b1",28),rep("#81d8d0",20),rep("#92C5DE",16),rep("#4393C3",11),rep("#2166AC",25))
+colores8<-c("#B2182B","#D6604D","#F4A582","#ffd5b1","#81d8d0","#92C5DE","#4393C3","#2166AC")
+
+## Grafico 2D de la primera y segunda funcion discriminante
+scatter(dapc_congrio_all_150,xax=1, yax=2,addaxes = TRUE,
+        scree.da=T,posi.da="bottomright", 
+        scree.pca=TRUE,posi.pca="bottomleft",
+        bg="white", clab=0,pch=20, col=colores8, solid=.7, cex=1.7,cstar=F, 
+        leg=TRUE, txt.leg=paste(c("TTL","CLD","COQ","ZAP","PEL","TCH","LEB","PTO")),
+        ylim=c(23,-10),xlim=c(-12,29))
+
+## Grafico 2D de la tercera y cuarta funcion discriminante
+scatter(dapc_congrio_all_150,xax=3, yax=4,addaxes = TRUE,
+        scree.da=T,posi.da="bottomright", 
+        scree.pca=TRUE,posi.pca="bottomleft",
+        bg="white",clab=0, solid=.75, cex=1.7,pch=20, col=colores8,cstar=F, 
+        leg=TRUE, txt.leg=paste(c("TTL","CLD","COQ","ZAP","PEL","TCH","LEB","PTO")),
+        ylim=c(0,1),xlim=c(-13,16))
+        
+## Grafico 3D
+with(dapc_all_df1, plot3d(LD1,LD2,LD3, type="p",size = 8, col=col_indv))
+
+## Crear Gif de grafico 3D
+play3d( spin3d( axis = c(0, 0, 1), rpm = 6), duration = 120 )
+
+rgl.cur(1) #numero de ventana emergente correspondiente al grafico que se quiere animar
+movie3d(
+  movie="3d_dapc_6030_snps", #nombre archivo a crear
+  spin3d( axis = c(0, 0, 1), rpm = 3), # eje de rotacion y velocidad
+  duration = 15, #duracion de la animacion
+  dir = "~/Documents/Congrio/SNPs_paper/", #directorio de salida
+  type = "gif",
+  clean = TRUE)
