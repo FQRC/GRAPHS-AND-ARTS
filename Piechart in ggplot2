@@ -1,0 +1,104 @@
+#limpiar el ambiente de trabajo
+setwd("D:/Google Drive/Paper/Paper Magallanes/Mapas")
+rm(list=ls())
+
+
+library(ggplot2)  # ggplot() fortify()
+library(rgeos)
+library(rgdal)  # readOGR() spTransform()
+library(raster)  # intersect()
+library(ggsn)  # north2() scalebar()
+library(rworldmap)  # getMap()
+library(rworldxtra)
+library(scatterpie)
+library(ggrepel)
+
+#Coordenadas por zona y conteo de especie por zona
+
+myti_pop <-data.frame(pop=c("FKGB","PMAR","BACL","SGCL","BICL","BLCL","PACL","CMCL","ALAR"),
+                      Lat=c(-51.8266,-53.9468,-52.4941,-52.5608,-53.4727,-52.9694,-53.1651,-54.4812,-54.8689),
+                      Lon=c(-58.9721,-67.4819,-69.5220,-70.0428,-69.3038,-70.8255,-70.9008,-68.9934,-67.5522),
+                      pais=c("Reino Unido","Argentina",rep("Chile",6),"Argentina"),
+                      Mch=c(0,0,0,2,7,17,16,13,16),
+                      Mp=c(18,18,19,17,10,1,1,0,0),
+                      MchxMp=c(1,0,0,0,2,1,1,3,0))
+
+# Get world map
+world <- getMap(resolution = "high")
+
+# Preliminary plot
+ggplot(myti_pop, mapping = aes(x = Lon, y = Lat)) + 
+  geom_point(alpha = 0.5)
+
+# Get map data
+#extent
+clipper_chile <- as(extent(-72, -57, -56, -51), "SpatialPolygons")
+proj4string(clipper_chile) <- CRS(proj4string(world))
+world_clip <- raster::intersect(world, clipper_chile)
+world_clip_f <- fortify(world_clip)
+
+#sudamerica
+clipper_chile <- as(extent(-80, -56, -56, -30), "SpatialPolygons")
+proj4string(clipper_chile) <- CRS(proj4string(world))
+world_clip <- raster::intersect(world, clipper_chile)
+world_clip_f <- fortify(world_clip)
+
+ggplot() + 
+  geom_polygon(data = world_clip_f, 
+               aes(x = long, y = lat, group = group),
+               fill = "grey95", colour = "black") +
+  ggtitle("Sudamérica") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5,lineheight=.8, face="bold")) +
+  labs(x="longitud",y="Latitud",color="Pais") +
+  xlab("Longitud") +
+  ylab("Latitud") +
+  coord_quickmap() 
+  
+ #plot
+ggplot() + 
+  geom_polygon(data = world_clip_f, 
+               aes(x = long, y = lat, group = group),
+               fill = "grey95", colour = "black") +
+  geom_label_repel(alpha = 0.7, size = 5, fontface=2,
+                  aes(label=pop, x = Lon, y = Lat, colour=pais), data = myti_pop) +
+  scale_color_manual(values = c("turquoise4","red2","blue3")) +
+  ggtitle("Zona de Muestreo") +
+  theme_bw() +
+  labs(x="longitud",y="Latitud",color="Pais") +
+  xlab("Longitud") +
+  ylab("Latitud") +
+  theme(plot.title = element_text(hjust = 0.5,lineheight=.8, face="bold"),legend.position = "bottom") +
+  coord_quickmap() +
+  geom_point(aes(x = Lon, y = Lat, colour=pais),size=2,data = myti_pop) + 
+  guides(color = guide_legend(override.aes = list(linetype = 0, size=3)))
+
+
+#Mover las coordenadassinfk
+move1 <-data.frame(pop=c("FKGB","PMAR","BACL","SGCL","BICL","BLCL","PACL","CMCL","ALAR"),
+                   Lat=c(-51.8266,-53.9468,-52.3228,-52.4243,-53.4727,-52.7304,-53.2429,-54.4812,-54.8689),
+                   Lon=c(-58.9721,-67.4819,-69.4912,-70.4986,-69.3038,-71.0980,-71.3146,-68.9934,-67.5522),
+                   pais=c("Reino Unido","Argentina",rep("Chile",6),"Argentina"),
+                   Mch=c(0,0,0,2,7,17,16,13,16),
+                   Mp=c(18,18,19,17,10,1,1,0,0),
+                   MchxMp=c(1,0,0,0,2,1,1,3,0))
+
+ggplot() + 
+  geom_polygon(data = world_clip_f, 
+               aes(x = long, y = lat, group = group),
+               fill = "#E5E5E5", colour = "black") +
+  geom_scatterpie(aes(x=Lon, y=Lat, group=pop),data = move1,
+               cols=c("Mch","Mp","MchxMp")) + coord_equal() +
+               scale_fill_manual("Especie",values = c("red2","mediumorchid4","chartreuse4")) +
+  geom_label_repel(alpha = 0.7, size = 5, fontface=2, nudge_x = 0.5, nudge_y = -0.45,
+               aes(label=pop, x = Lon, y = Lat, colour=pais), data = myti_pop) +
+  ggtitle("Zona de Muestreo") +
+  theme_bw() +
+  labs(x="longitud",y="Latitud",color="Pais de Muestreo") +
+  xlab("Longitud") +
+  ylab("Latitud") +
+  theme(plot.title = element_text(hjust = 0.5,lineheight=.8, face="bold")) +
+  coord_quickmap() +
+  geom_point(aes(x = Lon, y = Lat, colour=pais),size=0,data = myti_pop) + 
+  scale_color_manual(values = c("turquoise4","red2","blue3")) +
+  guides(color = guide_legend(override.aes = list(linetype = 0, size=3)))
