@@ -1,3 +1,5 @@
+## Script para crear graficos 3D y extraer como animacion gif
+
 library(adegenet)
 library(devtools)
 library(rgl)
