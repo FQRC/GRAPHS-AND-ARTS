@@ -1,0 +1,92 @@
+# GRAFICOS SIMPLES COMPLEJOS
+
+plot.new() #para exportar grafico a TIFF calidad 600 dpi (res) en pixeles (p)
+tiff("Graficos Simples.tiff",width = 20, height = 20, units = "cm", pointsize = 12,
+     bg = "white", res = 500)
+
+par(mfrow=c(2,2)) # divide area grafica en 4
+#################### Parte A
+BW <-data.frame(mes1=c(1:12),
+                Y2002=c(0.386,0.244,0.298,0.357,0.305,0.184,0.133,0.113,0.0631,0.0933,0.258,0.540),
+                Y2003=c(0.373,0.222,0.420,0.485,0.444,0.333,0.114,0.124,0.0449,0.267,0.216,0.491),
+                Y2004=c(0.524,0.469,0.692,0.683,0.782,0.642,0.427,0.270,0.0919,0.191,0.245,0.569),
+                Y2005=c(0.507,0.452,0.507,0.604,0.479,0.182,0.0841,0.0532,0, 0.0221,0.192,0.532),
+                Y2006=c(0.371,0.590,0.583,0.462,0.431,0.170,0.0404,0.0435,0,0,0.186,0.435))
+attach(BW)
+plot(mes1, Y2002,type="o",col=1, ylim = c(0,0.9), pch=15, bty="l", cex.lab=0.8,
+     xlab = "Month",ylab="Feed Consumption [% BW]", xaxp=c(0,12,12), cex.axis =0.8,las=1, cex.main=1,
+     main = "A                                                                  ",
+     cex.main=1.5, las=1)
+lines(Y2003,col=1,type="o",pch=16,lty=2, lwd=1.5)
+lines(Y2004,col=1,type="o",pch=17,lty=3, lwd=2)
+lines(Y2005,col=1,type="o",pch=18,lty=4, lwd=1.5)
+lines(Y2006,col=1,type="o",pch=19,lty=5, lwd=1.5)
+legend(9,0.95, c("2002", "2003","2004","2005","2006"), col=1, lwd=1,
+       cex=0.9, pch= c(15:19), lty=c(1:5), bty="n", border=1)
+
+#################### Parte B
+Viable <-c(0.015, 0.008, 0, 0.007, 0.003, 0.030, 0.016, 0.102, 0.077, 0.177)
+Gaping <-c(0.404, 0.319, 0.271, 0.173, 0.316, 0.382, 0.187, 0.105, 0.099, 0.092)
+
+par(mar = c(5, 4, 4, 4) + 0.3) # da mas espacio para el nuevo eje   
+plot(Year,Gaping*100,type="o",col=1,ylim = c(0,45), pch=20, bty="l", lwd=1.5, cex.lab=0.8,
+     yaxp=c(0,45,10),xlab = "Year",ylab="Gaping & Oedema Syndrome [%]", cex.axis =0.8, lty=4,
+     xaxp=c(2002,2011,9),
+     main = "B                                                                  ", 
+     cex.main=1.5, las=2)
+legend(2002,45, c("Gaping & Oedema", "Viable Larvae"), cex=0.8, pch=c(20,15), lty=c(4,1),
+       lwd=c(1.5,1), bty="n")
+par(new = T) #  permite superponer un segundo grafico
+plot(Year,Viable*100,type="o",col=1, pch=15, bty="l", lty=1, cex.lab=0.8,
+     xlab = "",ylab="", xaxp=c(0,45,15), cex.axis =0.8,cex.main=2, axes = F)
+axis(side = 4, at = pretty(c(0,25)), las =1, cex.axis=0.8) # Agrega un segundo eje  
+mtext("Viable Larvae Survival Rate [%]", side = 4, line = 3, cex=0.7) # agegra nombre al 2do eje     
+
+
+#################### Parte C
+
+# funcion para agregar barra de error sa grafico de barras
+error.bar <- function(x, y, upper, length=0.05,...){
+  arrows(x,y+upper, x, y, angle=90, code=3, length=length, ...)}
+
+# Datos
+Year1=c(rep(2007,6),rep(2002,3),rep(2003,3),rep(2009,4))
+IncompEyeMigration=c(0.246,0.2, 0.141,0.0444,0.147,0.269,0.667,0.5,0.588,0.107,0.02,0.0588,0.0333,0.015,0.0273,0)
+Malpigmentation=c(0.211,0.18,0.424,0.378,0.294,0.115,0,0.15,0,0.214,0.3,0.314,0.0667,0.125,0.164,0.417)
+Others=c(0.0351,0.08,0.0941,0.1,0.0882,0.192,0.111,0.1,0.0588,0.214,0.04,0.118,0,0.025,0.0273,0.0833)
+NormalFish=c(0.509,0.54,0.341,0.478,0.471,0.423,0.222,0.25,0.353,0.464,0.64,0.510,0.9,0.835,0.782,0.5)
+Fig_13 <-data.frame(Year1,IncompEyeMigration,Malpigmentation,Others,NormalFish )
+
+dataC2 <- aggregate(cbind(NormalFish*100,IncompEyeMigration*100,
+                          Malpigmentation*100,Others*100)~Year1, data=Fig_13, mean)
+dataC2 <-t(dataC2)
+dataC2 <- as.matrix(dataC2[-1,])
+colnames(dataC2) <-c("2002", "2003", "2007","2009")
+colbar <-c(1, "grey30","grey60","white")
+
+stdev <- aggregate(cbind(NormalFish*100,IncompEyeMigration*100,
+                         Malpigmentation*100,Others*100)~Year1 , data=Fig_13 , sd)       
+stdev <-t(stdev)
+stdev <- as.matrix(stdev[-1,])
+grafico <- barplot(dataC2 , beside=T , las=1, cex.axis=0.8, cex.names = 0.8, xlab="Year",
+                   ylim=c(0,100) , ylab="Percentage of Occurence", col=colbar, cex.lab=0.8,cex.main=1.5,
+                   main = "C                                                              ")
+error.bar(grafico,dataC2, stdev)
+legend(1,100, c("Normal Fish", "Incomplete Eye Migration","Malpigmantation","Other"), 
+       col=c(1, "grey30","grey60",1),
+       cex=0.9, pch= c(rep(15,3),0),  bty="n", border=1)
+
+#################### Parte D
+Fec <- c(3004.4, 7862.5, 13648.9, 11243.6, 14108.4)
+sdFec <-c(2306.6, 2693.5,	7694.8,	4412.2,	6125.0)
+Year2 <-c("2002","2003","2004","2005","2006")
+
+graficoFec <- barplot(Fec , beside=T , las=1, cex.axis=0.8, cex.names = 0.8, xlab="Year", names=Year2,
+                      ylim=c(0,25000) , ylab="Relative Fecundity [eggs per Kg]", cex.lab=0.8, col=1, space = 1.8,
+                      main = "D                                                                  ",
+                      cex.main=1.5)
+
+error.bar(graficoFec,Fec, sdFec)
+
+dev.off() # para finalizar grafico alta resolucion
+
